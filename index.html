@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O'zbekiston Tabiiy Boyliklari - Interaktiv Geografiya</title>
+    
+    <!-- Xarita va ikonkalar uchun kerakli kutubxonalar -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <style>
+        :root {
+            --primary: #1a5f7a;
+            --gold: #FFD700;
+            --oil: #333333;
+            --gas: #00a8ff;
+            --uranium: #44bd32;
+            --coal: #57606f;
+            --copper: #e67e22;
+            --light: #f5f6fa;
+            --dark: #2c3e50;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background: var(--light);
+            height: 100vh;
+            overflow: hidden;
+            color: var(--dark);
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), #0e4161);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            position: relative;
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        #app-layout {
+            display: flex;
+            height: calc(100vh - 120px);
+            position: relative;
+        }
+
+        #map {
+            flex: 1;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Mobil qurilmalar uchun Sidebar (yuqoridan pastga) */
+        #sidebar {
+            position: fixed;
+            top: 120px;
+            right: 0;
+            width: 100%;
+            max-width: 400px;
+            height: calc(100vh - 120px);
+            background: white;
+            box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+        }
+
+        /* Desktop uchun Sidebar (o'ng tomonda) */
+        @media (min-width: 901px) {
+            #sidebar {
+                position: relative;
+                top: 0;
+                height: 100%;
+                transform: none !important;
+                max-width: 380px;
+                flex-shrink: 0;
+            }
+
+            .sidebar-toggle {
+                display: none;
+            }
+        }
+
+        /* Mobil qurilmalarda Sidebar yopiq bo‘lsa */
+        @media (max-width: 900px) {
+            #sidebar.hidden {
+                transform: translateX(100%);
+            }
+
+            #sidebar:not(.hidden) {
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle {
+                display: block;
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                background: rgba(255, 255, 255, 0.9);
+                border: none;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+                cursor: pointer;
+                z-index: 1002;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            }
+        }
+
+        .sidebar-content {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn.active {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25), 0 0 0 2px white;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold), #e6b800);
+            color: #333;
+        }
+
+        .btn-oil {
+            background: linear-gradient(135deg, var(--oil), #5a5a5a);
+        }
+
+        .btn-gas {
+            background: linear-gradient(135deg, var(--gas), #0097e6);
+        }
+
+        .btn-uran {
+            background: linear-gradient(135deg, var(--uranium), #2e8b20);
+        }
+
+        .btn-coal {
+            background: linear-gradient(135deg, var(--coal), #3a4658);
+        }
+
+        .btn-copper {
+            background: linear-gradient(135deg, var(--copper), #d35400);
+        }
+
+        .btn-all {
+            background: linear-gradient(135deg, var(--dark), #1c2d3f);
+        }
+
+        .info-card {
+            background: #fff;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.07);
+            margin-bottom: 25px;
+            border-left: 6px solid var(--primary);
+            transition: transform 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .info-card h3 {
+            margin-top: 0;
+            color: var(--primary);
+            border-bottom: 2px solid #f1f1f1;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .stat-box {
+            background: linear-gradient(to right, #f8f9fa, #e9ecef);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            font-size: 15px;
+            color: #444;
+            border-left: 5px solid var(--primary);
+        }
+
+        .resource-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .detail-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid #eaeaea;
+        }
+
+        .detail-item:hover {
+            background: #e9ecef;
+            transform: scale(1.03);
+        }
+
+        .detail-value {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .detail-label {
+            font-size: 0.85rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .map-type-selector {
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .map-type-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .map-type-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .legend {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
+            z-index: 1000;
+            font-size: 13px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .legend-color {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            margin-right: 12px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .close-details {
+            background: var(--dark);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 20px;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        .close-details:hover {
+            background: #1a252f;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1><i class="fas fa-gem"></i> O'zbekistonning Tabiiy Boyliklari</h1>
+    <div class="header-controls">
+        <div class="map-type-selector">
+            <button class="map-type-btn active" onclick="changeMapType('osm')"><i class="fas fa-map"></i> Xarita</button>
+            <button class="map-type-btn" onclick="changeMapType('satellite')"><i class="fas fa-satellite"></i> Sputnik</button>
+            <button class="map-type-btn" onclick="changeMapType('topo')"><i class="fas fa-mountain"></i> Relief</button>
+        </div>
+    </div>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+</header>
+
+<div id="app-layout">
+    <div id="map"></div>
+    <div id="sidebar" class="hidden">
+        <div class="sidebar-content">
+            <h3><i class="fas fa-filter"></i> Resurslarni saralash:</h3>
+            <div class="filter-group">
+                <button class="btn btn-all active" onclick="filterMarkers('all')"><i class="fas fa-globe-asia"></i> Hammasi</button>
+                <button class="btn btn-gold" onclick="filterMarkers('gold')"><i class="fas fa-crown"></i> Oltin</button>
+                <button class="btn btn-copper" onclick="filterMarkers('copper')"><i class="fas fa-coins"></i> Mis</button>
+                <button class="btn btn-oil" onclick="filterMarkers('oil')"><i class="fas fa-gas-pump"></i> Neft</button>
+                <button class="btn btn-gas" onclick="filterMarkers('gas')"><i class="fas fa-fire"></i> Gaz</button>
+                <button class="btn btn-uran" onclick="filterMarkers('uranium')"><i class="fas fa-atom"></i> Uran</button>
+                <button class="btn btn-coal" onclick="filterMarkers('coal')"><i class="fas fa-mountain"></i> Ko‘mir</button>
+            </div>
+
+            <div id="dynamic-info">
+                <div class="info-card">
+                    <h3><i class="fas fa-info-circle"></i> Umumiy ma'lumot</h3>
+                    <p>O‘zbekiston mineral-xom ashyo resurslari salohiyati bo‘yicha dunyodagi yetakchi mamlakatlardan biri. Mamlakat yer osti boyliklari xilma-xilligi va hajmi jihatidan Markaziy Osiyo mintaqasida yetakchi o‘rinda turadi.</p>
+                    <div class="stat-box">
+                        <p><strong><i class="fas fa-medal" style="color: var(--gold);"></i> Oltin:</strong> Dunyoda 4-o‘rin (zaxira)</p>
+                        <p><strong><i class="fas fa-coins" style="color: var(--copper);"></i> Mis:</strong> Dunyoda 10-o‘rin</p>
+                        <p><strong><i class="fas fa-radiation-alt" style="color: var(--uranium);"></i> Uran:</strong> Dunyoda 7-o‘rin</p>
+                        <p><strong><i class="fas fa-fire" style="color: var(--gas);"></i> Tabiiy gaz:</strong> Dunyoda 14-o‘rin (zaxira)</p>
+                    </div>
+                    <p style="margin-top: 15px; font-style: italic; color: #666;"><i class="fas fa-lightbulb"></i> Xaritada joylashgan har qanday kon belgisini bosing, batafsil ma'lumot olish uchun.</p>
+                </div>
+            </div>
+            <div id="resource-details" style="display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<div class="legend">
+    <h4 style="margin-bottom: 10px; color: var(--dark);"><i class="fas fa-key"></i> Belgilar</h4>
+    <div class="legend-item"><div class="legend-color" style="background: #FFD700;"></div> Oltin</div>
+    <div class="legend-item"><div class="legend-color" style="background: #e67e22;"></div> Mis</div>
+    <div class="legend-item"><div class="legend-color" style="background: #333333;"></div> Neft</div>
+    <div class="legend-item"><div class="legend-color" style="background: #00a8ff;"></div> Gaz</div>
+    <div class="legend-item"><div class="legend-color" style="background: #44bd32;"></div> Uran</div>
+    <div class="legend-item"><div class="legend-color" style="background: #57606f;"></div> Ko‘mir</div>
+</div>
+
+<script>
+    // Xarita qatlamlari - alternativ manbalar bilan
+    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+    
+    // OpenTopoMap o‘rniga ishlaydigan Topo qatlam
+    const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+    });
+
+    // Satellite qatlam uchun ishonchli alternativ
+    const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    });
+
+    // Xaritani yaratish
+    const map = L.map('map', {
+        center: [41.3775, 64.5853],
+        zoom: 6,
+        layers: [osmLayer]
+    });
+
+    // Aniqroq va real ma'lumotlar
+    const resources = [
+        {
+            id: 1,
+            name: "Muruntov oltin koni",
+            type: "gold",
+            lat: 41.496,
+            lng: 64.573,
+            region: "Navoiy viloyati",
+            reserves: "5,200 tonna",
+            annualProduction: "85 tonna",
+            established: 1958,
+            employees: 12000,
+            company: "Navoiy kon-metallurgiya kombinati (NKMK)",
+            fact: "Dunyodagi eng yirik ochiq oltin konlaridan biri, O‘zbekiston oltin ishlab chiqarishining asosiy manbai.",
+            status: "Faol",
+            depth: "400 metr",
+            website: "https://www.ngmk.uz"
+        },
+        {
+            id: 2,
+            name: "Sho‘rtan gaz-kimyo majmuasi",
+            type: "gas",
+            lat: 38.452,
+            lng: 65.918,
+            region: "Qashqadaryo viloyati",
+            reserves: "180 mlrd m³",
+            annualProduction: "15 mlrd m³",
+            established: 2004,
+            employees: 4500,
+            company: "O‘zbekneftegaz",
+            fact: "O‘zbekistondagi eng yirik gazni qayta ishlash va polietilen ishlab chiqarish markazi.",
+            status: "Faol",
+            depth: "2,500-3,000 metr",
+            website: "https://www.shurtangmc.uz"
+        },
+        {
+            id: 3,
+            name: "Angren ko‘mir koni",
+            type: "coal",
+            lat: 41.016,
+            lng: 70.143,
+            region: "Toshkent viloyati",
+            reserves: "1.9 mlrd tonna",
+            annualProduction: "6.2 mln tonna",
+            established: 1940,
+            employees: 8500,
+            company: "O‘zbekko‘mir",
+            fact: "O‘zbekistondagi eng yirik qo‘ng‘ir ko‘mir koni, mamlakat energiya xavfsizligi uchun muhim ahamiyatga ega.",
+            status: "Faol",
+            depth: "200 metr",
+            website: "https://www.uzbekcoal.uz"
+        },
+        {
+            id: 4,
+            name: "Mingbuloq neft koni",
+            type: "oil",
+            lat: 40.852,
+            lng: 71.321,
+            region: "Farg‘ona viloyati",
+            reserves: "150 mln tonna",
+            annualProduction: "1.8 mln tonna",
+            established: 1904,
+            employees: 3200,
+            company: "O‘zbekneftegaz",
+            fact: "Farg‘ona vodiysidagi eng qadimiy va eng katta neft konlaridan biri.",
+            status: "Faol",
+            depth: "3,500 metr",
+            website: "https://www.ung.uz"
+        },
+        {
+            id: 5,
+            name: "Uchquduq uran koni",
+            type: "uranium",
+            lat: 42.156,
+            lng: 63.551,
+            region: "Navoiy viloyati",
+            reserves: "138 ming tonna",
+            annualProduction: "3.5 ming tonna",
+            established: 1972,
+            employees: 6800,
+            company: "Navoiy kon-metallurgiya kombinati (NKMK)",
+            fact: "Dunyodagi yetakchi uran ishlab chiqaruvchilaridan biri, uran eksporti asosini tashkil qiladi.",
+            status: "Faol",
+            depth: "500 metr",
+            website: "https://www.ngmk.uz"
+        },
+        {
+            id: 6,
+            name: "Gazli gaz koni",
+            type: "gas",
+            lat: 40.133,
+            lng: 63.450,
+            region: "Buxoro viloyati",
+            reserves: "500 mlrd m³",
+            annualProduction: "25 mlrd m³",
+            established: 1956,
+            employees: 9200,
+            company: "O‘zbekneftegaz",
+            fact: "Tarixiy 'Markaziy Osiyo-Markaz' quvurining asosiy manbai, O‘zbekistonning gaz xavfsizligi uchun muhim.",
+            status: "Faol",
+            depth: "2,800 metr",
+            website: "https://www.ung.uz"
+        },
+        {
+            id: 7,
+            name: "Kalmakir mis koni",
+            type: "copper",
+            lat: 40.835,
+            lng: 69.702,
+            region: "Toshkent viloyati (Olmaliq)",
+            reserves: "600 mln tonna",
+            annualProduction: "148 ming tonna",
+            established: 1954,
+            employees: 15000,
+            company: "Olmaliq kon-metallurgiya kombinati (OKMK)",
+            fact: "Dunyodagi eng yirik mis konlaridan biri, O‘zbekiston mis ishlab chiqarishining asosiy manbai.",
+            status: "Faol",
+            depth: "350 metr",
+            website: "https://www.agmk.uz"
+        },
+        {
+            id: 8,
+            name: "Zarafshon oltin koni",
+            type: "gold",
+            lat: 39.541,
+            lng: 66.974,
+            region: "Samarqand viloyati",
+            reserves: "200 tonna",
+            annualProduction: "4 tonna",
+            established: 2010,
+            employees: 2100,
+            company: "Navoiy kon-metallurgiya kombinati (NKMK)",
+            fact: "Yaqinda ochilgan va rivojlantirilayotgan istiqbolli kon, zaxiralari hali to‘liq o‘rganilmagan.",
+            status: "Rivojlantirilmoqda",
+            depth: "250 metr",
+            website: "https://www.ngmk.uz"
+        },
+        {
+            id: 9,
+            name: "Muborak gaz koni",
+            type: "gas",
+            lat: 39.261,
+            lng: 65.152,
+            region: "Qashqadaryo viloyati",
+            reserves: "300 mlrd m³",
+            annualProduction: "18 mlrd m³",
+            established: 1971,
+            employees: 5500,
+            company: "O‘zbekneftegaz",
+            fact: "Gazni oltingugurtdan tozalashning yirik markazi, sifatli gaz ishlab chiqarish uchun jihozlangan.",
+            status: "Faol",
+            depth: "2,200 metr",
+            website: "https://www.ung.uz"
+        },
+        {
+            id: 10,
+            name: "Sharg‘un ko‘mir koni",
+            type: "coal",
+            lat: 38.452,
+            lng: 67.892,
+            region: "Surxondaryo viloyati",
+            reserves: "160 mln tonna",
+            annualProduction: "0.9 mln tonna",
+            established: 1958,
+            employees: 1200,
+            company: "O‘zbekko‘mir",
+            fact: "O‘zbekistondagi eng sifatli toshko‘mir koni, metallurgiya sanoati uchun muhim ahamiyatga ega.",
+            status: "Faol",
+            depth: "180 metr",
+            website: "https://www.uzbekcoal.uz"
+        },
+        {
+            id: 11,
+            name: "Boyunbosh neft koni",
+            type: "oil",
+            lat: 37.351,
+            lng: 67.281,
+            region: "Surxondaryo viloyati",
+            reserves: "40 mln tonna",
+            annualProduction: "0.5 mln tonna",
+            established: 1980,
+            employees: 900,
+            company: "O‘zbekneftegaz",
+            fact: "Surxondaryo viloyatidagi asosiy neft manbai, janubiy mintaqaning energiya ehtiyojlarini qondirishga yordam beradi.",
+            status: "Faol",
+            depth: "2,800 metr",
+            website: "https://www.ung.uz"
+        },
+        {
+            id: 12,
+            name: "Yoshlik-I mis koni",
+            type: "copper",
+            lat: 40.812,
+            lng: 69.651,
+            region: "Toshkent viloyati (Olmaliq)",
+            reserves: "1 mlrd tonna+",
+            annualProduction: "Yaqinda ishga tushadi",
+            established: 2017,
+            employees: 5000,
+            company: "Olmaliq kon-metallurgiya kombinati (OKMK)",
+            fact: "Yangi 'Mega' loyiha, zaxiralari ulkan bo‘lib, O‘zbekistonni dunyoning yetakchi mis ishlab chiqaruvchilaridan biriga aylantirishi mumkin.",
+            status: "Qurilmoqda",
+            depth: "400 metr",
+            website: "https://www.agmk.uz"
+        },
+        {
+            id: 13,
+            name: "Kokpatas oltin koni",
+            type: "gold",
+            lat: 41.234,
+            lng: 64.892,
+            region: "Navoiy viloyati",
+            reserves: "350 tonna",
+            annualProduction: "12 tonna",
+            established: 1995,
+            employees: 3000,
+            company: "Navoiy kon-metallurgiya kombinati (NKMK)",
+            fact: "Muruntovdan keyingi ikkinchi yirik oltin koni, navbatdagi rivojlanish bosqichida.",
+            status: "Faol",
+            depth: "300 metr",
+            website: "https://www.ngmk.uz"
+        },
+        {
+            id: 14,
+            name: "Xovling gaz koni",
+            type: "gas",
+            lat: 37.891,
+            lng: 66.342,
+            region: "Surxondaryo viloyati",
+            reserves: "120 mlrd m³",
+            annualProduction: "8 mlrd m³",
+            established: 1998,
+            employees: 2800,
+            company: "O‘zbekneftegaz",
+            fact: "Surxondaryo viloyatidagi eng yirik gaz koni, janubiy mintaqaning energiya manbai.",
+            status: "Faol",
+            depth: "2,600 metr",
+            website: "https://www.ung.uz"
+        }
+    ];
+
+    let activeMarkers = [];
+    let currentFilter = 'all';
+
+    // Marker yaratish funksiyasi
+    function createMarker(res) {
+        const colors = {
+            gold: '#FFD700',
+            oil: '#333333',
+            gas: '#00a8ff',
+            uranium: '#44bd32',
+            coal: '#57606f',
+            copper: '#e67e22'
+        };
+        
+        const icons = {
+            gold: 'fa-crown',
+            oil: 'fa-gas-pump',
+            gas: 'fa-fire',
+            uranium: 'fa-radiation-alt',
+            coal: 'fa-mountain',
+            copper: 'fa-coins'
+        };
+        
+        const icon = L.divIcon({
+            html: `<div style="background:${colors[res.type]}; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:3px solid #fff; box-shadow:0 0 10px rgba(0,0,0,0.4); color:${res.type==='gold'?'#333':'#fff'}; font-size:16px; cursor:pointer;"><i class="fas ${icons[res.type]}"></i></div>`,
+            className: 'custom-marker',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+        });
+        
+        const marker = L.marker([res.lat, res.lng], { icon: icon }).addTo(map);
+        
+        // Oddiy popup
+        marker.bindPopup(`
+            <div style="font-family: 'Segoe UI', sans-serif; min-width: 200px;">
+                <h4 style="margin: 0 0 10px 0; color: ${colors[res.type]};">${res.name}</h4>
+                <p style="margin: 5px 0;"><strong>Viloyat:</strong> ${res.region}</p>
+                <p style="margin: 5px 0;"><strong>Turi:</strong> ${getResourceTypeName(res.type)}</p>
+                <p style="margin: 5px 0;"><strong>Holati:</strong> ${res.status}</p>
+                <button onclick="showDetails(${res.id})" style="margin-top:10px; padding:8px 15px; background:${colors[res.type]}; color:${res.type==='gold'?'#333':'white'}; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">Batafsil ma'lumot</button>
+            </div>
+        `);
+        
+        // Marker bosilganda
+        marker.on('click', function(e) {
+            showDetails(res.id);
+        });
+        
+        return marker;
+    }
+
+    // Filter funksiyasi - ENDI XARITANI HARAKATLANTIRMAYDI
+    function filterMarkers(type) {
+        // Faqat filter tugmalarining faolligini o‘zgartirish
+        document.querySelectorAll('.filter-group .btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        // Eski markerlarni o‘chirish
+        activeMarkers.forEach(m => map.removeLayer(m));
+        activeMarkers = [];
+        
+        currentFilter = type;
+        
+        // Yangi markerlarni yaratish
+        const filtered = type === 'all' ? resources : resources.filter(r => r.type === type);
+        filtered.forEach(r => activeMarkers.push(createMarker(r)));
+        
+        // Xaritani harakatlantirmaymiz, faqat filter qo‘llaymiz
+        console.log(`${filtered.length} ta kon ko‘rsatilmoqda (${type} filteri)`);
+    }
+
+    // Tafsilotlarni ko‘rsatish
+    function showDetails(id) {
+        const res = resources.find(r => r.id === id);
+        if (!res) return;
+
+        // Marker popupini ochish
+        activeMarkers.forEach(m => {
+            const latLng = m.getLatLng();
+            if (Math.abs(latLng.lat - res.lat) < 0.001 && Math.abs(latLng.lng - res.lng) < 0.001) {
+                m.openPopup();
+                // Xaritani biroz harakatlantirish (markerga fokuslash)
+                map.setView([res.lat, res.lng], map.getZoom() > 10 ? map.getZoom() : 10, {
+                    animate: true,
+                    duration: 0.5
+                });
+            }
+        });
+
+        // Sidebar ma'lumotlarini yangilash
+        document.getElementById('dynamic-info').style.display = 'none';
+        const detailDiv = document.getElementById('resource-details');
+        detailDiv.style.display = 'block';
+        
+        const colors = {
+            gold: '#FFD700',
+            oil: '#333333',
+            gas: '#00a8ff',
+            uranium: '#44bd32',
+            coal: '#57606f',
+            copper: '#e67e22'
+        };
+
+        detailDiv.innerHTML = `
+            <div class="info-card" style="border-left-color: ${colors[res.type]};">
+                <h3><i class="fas fa-${getResourceIcon(res.type)}" style="color: ${colors[res.type]}"></i> ${res.name}</h3>
+                <p><strong>Viloyat:</strong> ${res.region}</p>
+                <p><strong>Kon turi:</strong> ${getResourceTypeName(res.type)}</p>
+                <p><strong>Ishga tushgan yili:</strong> ${res.established}</p>
+                <p><strong>Korxona:</strong> ${res.company}</p>
+                <p><strong>Holati:</strong> ${res.status}</p>
+                <p><strong>Chuqurligi:</strong> ${res.depth}</p>
+                <p><strong>Xodimlar soni:</strong> ${res.employees.toLocaleString()} kishi</p>
+                
+                <div class="resource-details">
+                    <div class="detail-item">
+                        <div class="detail-value">${res.reserves}</div>
+                        <div class="detail-label">Zaxira hajmi</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-value">${res.annualProduction}</div>
+                        <div class="detail-label">Yillik ishlab chiqarish</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #f0f8ff; border-radius: 10px;">
+                    <h4 style="margin-top: 0; color: ${colors[res.type]}"><i class="fas fa-lightbulb"></i> Qiziqarli fakt:</h4>
+                    <p>${res.fact}</p>
+                </div>
+                
+                ${res.website ? `<p style="margin-top: 15px;"><strong>Veb-sayt:</strong> <a href="${res.website}" target="_blank">${res.website}</a></p>` : ''}
+                
+                <button class="close-details" onclick="resetToOverview()">
+                    <i class="fas fa-arrow-left"></i> Boshqaruv paneliga qaytish
+                </button>
+            </div>
+        `;
+        
+        // Mobil qurilmalarda sidebar ko‘rsatish
+        if (window.innerWidth <= 900) {
+            document.getElementById('sidebar').classList.remove('hidden');
+        }
+    }
+
+    // Boshqaruv paneliga qaytish
+    function resetToOverview() {
+        document.getElementById('resource-details').style.display = 'none';
+        document.getElementById('dynamic-info').style.display = 'block';
+        
+        // Mobil qurilmalarda sidebar yopish
+        if (window.innerWidth <= 900) {
+            document.getElementById('sidebar').classList.add('hidden');
+        }
+    }
+
+    // Xarita turini o‘zgartirish
+    function changeMapType(type) {
+        map.removeLayer(osmLayer);
+        map.removeLayer(satelliteLayer);
+        map.removeLayer(topoLayer);
+        
+        if (type === 'osm') map.addLayer(osmLayer);
+        else if (type === 'satellite') map.addLayer(satelliteLayer);
+        else if (type === 'topo') map.addLayer(topoLayer);
+        
+        // Tugmalarni yangilash
+        document.querySelectorAll('.map-type-btn').forEach(b => {
+            b.classList.remove('active');
+        });
+        event.target.classList.add('active');
+    }
+
+    // Sidebar ni mobil qurilmalarda ko‘rsatish/yashirish
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('hidden');
+    }
+
+    // Resurs turi nomini olish
+    function getResourceTypeName(type) {
+        const names = {
+            gold: "Oltin",
+            oil: "Neft",
+            gas: "Tabiiy gaz",
+            uranium: "Uran",
+            coal: "Ko‘mir",
+            copper: "Mis"
+        };
+        return names[type] || type;
+    }
+
+    // Resurs turi uchun ikonka olish
+    function getResourceIcon(type) {
+        const icons = {
+            gold: "crown",
+            oil: "gas-pump",
+            gas: "fire",
+            uranium: "radiation-alt",
+            coal: "mountain",
+            copper: "coins"
+        };
+        return icons[type] || "gem";
+    }
+
+    // Dastlabki yuklash
+    window.addEventListener('DOMContentLoaded', function() {
+        // Barcha markerlarni yaratish
+        filterMarkers('all');
+        
+        // Xarita o‘lchamini sozlash
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 100);
+        
+        // Ekran o‘lchami o‘zgarganda sidebar holatini sozlash
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 900) {
+                // Desktop rejimida sidebar har doim ko‘rinsin
+                document.getElementById('sidebar').classList.remove('hidden');
+            } else {
+                // Mobil rejimda sidebar boshlang‘ich holatda yopiq bo‘lsin
+                document.getElementById('sidebar').classList.add('hidden');
+            }
+            map.invalidateSize();
+        });
+    });
+</script>
+</body>
+</html>
