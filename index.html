@@ -114,7 +114,7 @@
             }
         }
 
-        /* Mobil qurilmalarda Sidebar yopiq bo‘lsa */
+        /* Mobil qurilmalarda Sidebar yopiq bo'lsa */
         @media (max-width: 900px) {
             #sidebar.hidden {
                 transform: translateX(100%);
@@ -368,6 +368,127 @@
             color: #FFD700;
         }
 
+        /* Audio player uchun yangi stillar */
+        .audio-controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(to right, #f8f9fa, #e9ecef);
+            border-radius: 12px;
+            border-left: 5px solid var(--primary);
+        }
+
+        .audio-btn {
+            background: linear-gradient(135deg, var(--primary), #0e4161);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 25px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .audio-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .audio-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .audio-btn.playing {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .audio-progress {
+            margin-top: 15px;
+            width: 100%;
+            height: 6px;
+            background: #ddd;
+            border-radius: 3px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .audio-progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary), #00a8ff);
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        .audio-time {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #666;
+            display: none;
+        }
+
+        .audio-status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+            font-style: italic;
+            min-height: 20px;
+        }
+
+        /* Audio ovozini boshqarish */
+        .audio-volume {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .audio-volume i {
+            color: var(--primary);
+            font-size: 18px;
+        }
+
+        .audio-volume input {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .audio-volume input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* Marker popup uchun audio tugmasi */
+        .popup-audio-btn {
+            margin-top: 10px;
+            padding: 8px 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
     </style>
 </head>
 <body>
@@ -398,18 +519,18 @@
                 <button class="btn btn-oil" onclick="filterMarkers('oil')"><i class="fas fa-gas-pump"></i> Neft</button>
                 <button class="btn btn-gas" onclick="filterMarkers('gas')"><i class="fas fa-fire"></i> Gaz</button>
                 <button class="btn btn-uran" onclick="filterMarkers('uranium')"><i class="fas fa-atom"></i> Uran</button>
-                <button class="btn btn-coal" onclick="filterMarkers('coal')"><i class="fas fa-mountain"></i> Ko‘mir</button>
+                <button class="btn btn-coal" onclick="filterMarkers('coal')"><i class="fas fa-mountain"></i> Ko'mir</button>
             </div>
 
             <div id="dynamic-info">
                 <div class="info-card">
                     <h3><i class="fas fa-info-circle"></i> Umumiy ma'lumot</h3>
-                    <p>O‘zbekiston mineral-xom ashyo resurslari salohiyati bo‘yicha dunyodagi yetakchi mamlakatlardan biri. Mamlakat yer osti boyliklari xilma-xilligi va hajmi jihatidan Markaziy Osiyo mintaqasida yetakchi o‘rinda turadi.</p>
+                    <p>O'zbekiston mineral-xom ashyo resurslari salohiyati bo'yicha dunyodagi yetakchi mamlakatlardan biri. Mamlakat yer osti boyliklari xilma-xilligi va hajmi jihatidan Markaziy Osiyo mintaqasida yetakchi o'rinda turadi.</p>
                     <div class="stat-box">
-                        <p><strong><i class="fas fa-medal" style="color: var(--gold);"></i> Oltin:</strong> Dunyoda 4-o‘rin (zaxira)</p>
-                        <p><strong><i class="fas fa-coins" style="color: var(--copper);"></i> Mis:</strong> Dunyoda 10-o‘rin</p>
-                        <p><strong><i class="fas fa-radiation-alt" style="color: var(--uranium);"></i> Uran:</strong> Dunyoda 7-o‘rin</p>
-                        <p><strong><i class="fas fa-fire" style="color: var(--gas);"></i> Tabiiy gaz:</strong> Dunyoda 14-o‘rin (zaxira)</p>
+                        <p><strong><i class="fas fa-medal" style="color: var(--gold);"></i> Oltin:</strong> Dunyoda 4-o'rin (zaxira)</p>
+                        <p><strong><i class="fas fa-coins" style="color: var(--copper);"></i> Mis:</strong> Dunyoda 10-o'rin</p>
+                        <p><strong><i class="fas fa-radiation-alt" style="color: var(--uranium);"></i> Uran:</strong> Dunyoda 7-o'rin</p>
+                        <p><strong><i class="fas fa-fire" style="color: var(--gas);"></i> Tabiiy gaz:</strong> Dunyoda 14-o'rin (zaxira)</p>
                     </div>
                     <p style="margin-top: 15px; font-style: italic; color: #666;"><i class="fas fa-lightbulb"></i> Xaritada joylashgan har qanday kon belgisini bosing, batafsil ma'lumot olish uchun.</p>
                 </div>
@@ -426,16 +547,26 @@
     <div class="legend-item"><div class="legend-color" style="background: #333333;"></div> Neft</div>
     <div class="legend-item"><div class="legend-color" style="background: #00a8ff;"></div> Gaz</div>
     <div class="legend-item"><div class="legend-color" style="background: #44bd32;"></div> Uran</div>
-    <div class="legend-item"><div class="legend-color" style="background: #57606f;"></div> Ko‘mir</div>
+    <div class="legend-item"><div class="legend-color" style="background: #57606f;"></div> Ko'mir</div>
 </div>
 
+<!-- Audio element - bitta, dinamik ravishda yangilanadi -->
+<audio id="audio-player" preload="none">
+    Your browser does not support the audio element.
+</audio>
+
 <script>
+    // Audio player boshqaruvi
+    const audioPlayer = document.getElementById('audio-player');
+    let currentAudioId = null;
+    let audioInterval = null;
+    
     // Xarita qatlamlari - alternativ manbalar bilan
     const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     });
     
-    // OpenTopoMap o‘rniga ishlaydigan Topo qatlam
+    // OpenTopoMap o'rniga ishlaydigan Topo qatlam
     const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
         attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
     });
@@ -466,14 +597,15 @@
             established: 1958,
             employees: 12000,
             company: "Navoiy kon-metallurgiya kombinati (NKMK)",
-            fact: "Dunyodagi eng yirik ochiq oltin konlaridan biri, O‘zbekiston oltin ishlab chiqarishining asosiy manbai.",
+            fact: "Dunyodagi eng yirik ochiq oltin konlaridan biri, O'zbekiston oltin ishlab chiqarishining asosiy manbai.",
             status: "Faol",
             depth: "400 metr",
-            website: "https://www.ngmk.uz"
+            website: "https://www.ngmk.uz",
+            audioFile: "1.mp3"
         },
         {
             id: 2,
-            name: "Sho‘rtan gaz-kimyo majmuasi",
+            name: "Sho'tan gaz-kimyo majmuasi",
             type: "gas",
             lat: 38.452,
             lng: 65.918,
@@ -482,15 +614,16 @@
             annualProduction: "15 mlrd m³",
             established: 2004,
             employees: 4500,
-            company: "O‘zbekneftegaz",
-            fact: "O‘zbekistondagi eng yirik gazni qayta ishlash va polietilen ishlab chiqarish markazi.",
+            company: "O'zbekneftegaz",
+            fact: "O'zbekistondagi eng yirik gazni qayta ishlash va polietilen ishlab chiqarish markazi.",
             status: "Faol",
             depth: "2,500-3,000 metr",
-            website: "https://www.shurtangmc.uz"
+            website: "https://www.shurtangmc.uz",
+            audioFile: "2.mp3"
         },
         {
             id: 3,
-            name: "Angren ko‘mir koni",
+            name: "Angren ko'mir koni",
             type: "coal",
             lat: 41.016,
             lng: 70.143,
@@ -499,11 +632,12 @@
             annualProduction: "6.2 mln tonna",
             established: 1940,
             employees: 8500,
-            company: "O‘zbekko‘mir",
-            fact: "O‘zbekistondagi eng yirik qo‘ng‘ir ko‘mir koni, mamlakat energiya xavfsizligi uchun muhim ahamiyatga ega.",
+            company: "O'zbekko'mir",
+            fact: "O'zbekistondagi eng yirik qo'ng'ir ko'mir koni, mamlakat energiya xavfsizligi uchun muhim ahamiyatga ega.",
             status: "Faol",
             depth: "200 metr",
-            website: "https://www.uzbekcoal.uz"
+            website: "https://www.uzbekcoal.uz",
+            audioFile: "3.mp3"
         },
         {
             id: 4,
@@ -511,16 +645,17 @@
             type: "oil",
             lat: 40.852,
             lng: 71.321,
-            region: "Farg‘ona viloyati",
+            region: "Farg'ona viloyati",
             reserves: "150 mln tonna",
             annualProduction: "1.8 mln tonna",
             established: 1904,
             employees: 3200,
-            company: "O‘zbekneftegaz",
-            fact: "Farg‘ona vodiysidagi eng qadimiy va eng katta neft konlaridan biri.",
+            company: "O'zbekneftegaz",
+            fact: "Farg'ona vodiysidagi eng qadimiy va eng katta neft konlaridan biri.",
             status: "Faol",
             depth: "3,500 metr",
-            website: "https://www.ung.uz"
+            website: "https://www.ung.uz",
+            audioFile: "4.mp3"
         },
         {
             id: 5,
@@ -537,7 +672,8 @@
             fact: "Dunyodagi yetakchi uran ishlab chiqaruvchilaridan biri, uran eksporti asosini tashkil qiladi.",
             status: "Faol",
             depth: "500 metr",
-            website: "https://www.ngmk.uz"
+            website: "https://www.ngmk.uz",
+            audioFile: "5.mp3"
         },
         {
             id: 6,
@@ -550,11 +686,12 @@
             annualProduction: "25 mlrd m³",
             established: 1956,
             employees: 9200,
-            company: "O‘zbekneftegaz",
-            fact: "Tarixiy 'Markaziy Osiyo-Markaz' quvurining asosiy manbai, O‘zbekistonning gaz xavfsizligi uchun muhim.",
+            company: "O'zbekneftegaz",
+            fact: "Tarixiy 'Markaziy Osiyo-Markaz' quvurining asosiy manbai, O'zbekistonning gaz xavfsizligi uchun muhim.",
             status: "Faol",
             depth: "2,800 metr",
-            website: "https://www.ung.uz"
+            website: "https://www.ung.uz",
+            audioFile: "6.mp3"
         },
         {
             id: 7,
@@ -568,10 +705,11 @@
             established: 1954,
             employees: 15000,
             company: "Olmaliq kon-metallurgiya kombinati (OKMK)",
-            fact: "Dunyodagi eng yirik mis konlaridan biri, O‘zbekiston mis ishlab chiqarishining asosiy manbai.",
+            fact: "Dunyodagi eng yirik mis konlaridan biri, O'zbekiston mis ishlab chiqarishining asosiy manbai.",
             status: "Faol",
             depth: "350 metr",
-            website: "https://www.agmk.uz"
+            website: "https://www.agmk.uz",
+            audioFile: "7.mp3"
         },
         {
             id: 8,
@@ -585,10 +723,11 @@
             established: 2010,
             employees: 2100,
             company: "Navoiy kon-metallurgiya kombinati (NKMK)",
-            fact: "Yaqinda ochilgan va rivojlantirilayotgan istiqbolli kon, zaxiralari hali to‘liq o‘rganilmagan.",
+            fact: "Yaqinda ochilgan va rivojlantirilayotgan istiqbolli kon, zaxiralari hali to'liq o'rganilmagan.",
             status: "Rivojlantirilmoqda",
             depth: "250 metr",
-            website: "https://www.ngmk.uz"
+            website: "https://www.ngmk.uz",
+            audioFile: "8.mp3"
         },
         {
             id: 9,
@@ -601,15 +740,16 @@
             annualProduction: "18 mlrd m³",
             established: 1971,
             employees: 5500,
-            company: "O‘zbekneftegaz",
+            company: "O'zbekneftegaz",
             fact: "Gazni oltingugurtdan tozalashning yirik markazi, sifatli gaz ishlab chiqarish uchun jihozlangan.",
             status: "Faol",
             depth: "2,200 metr",
-            website: "https://www.ung.uz"
+            website: "https://www.ung.uz",
+            audioFile: "9.mp3"
         },
         {
             id: 10,
-            name: "Sharg‘un ko‘mir koni",
+            name: "Sharg'un ko'mir koni",
             type: "coal",
             lat: 38.452,
             lng: 67.892,
@@ -618,11 +758,12 @@
             annualProduction: "0.9 mln tonna",
             established: 1958,
             employees: 1200,
-            company: "O‘zbekko‘mir",
-            fact: "O‘zbekistondagi eng sifatli toshko‘mir koni, metallurgiya sanoati uchun muhim ahamiyatga ega.",
+            company: "O'zbekko'mir",
+            fact: "O'zbekistondagi eng sifatli toshko'mir koni, metallurgiya sanoati uchun muhim ahamiyatga ega.",
             status: "Faol",
             depth: "180 metr",
-            website: "https://www.uzbekcoal.uz"
+            website: "https://www.uzbekcoal.uz",
+            audioFile: "10.mp3"
         },
         {
             id: 11,
@@ -635,11 +776,12 @@
             annualProduction: "0.5 mln tonna",
             established: 1980,
             employees: 900,
-            company: "O‘zbekneftegaz",
+            company: "O'zbekneftegaz",
             fact: "Surxondaryo viloyatidagi asosiy neft manbai, janubiy mintaqaning energiya ehtiyojlarini qondirishga yordam beradi.",
             status: "Faol",
             depth: "2,800 metr",
-            website: "https://www.ung.uz"
+            website: "https://www.ung.uz",
+            audioFile: "11.mp3"
         },
         {
             id: 12,
@@ -649,14 +791,15 @@
             lng: 69.651,
             region: "Toshkent viloyati (Olmaliq)",
             reserves: "1 mlrd tonna+",
-            annualProduction: "Yaqinda ishga tushadi",
+            annualProduction: "",
             established: 2017,
             employees: 5000,
             company: "Olmaliq kon-metallurgiya kombinati (OKMK)",
-            fact: "Yangi 'Mega' loyiha, zaxiralari ulkan bo‘lib, O‘zbekistonni dunyoning yetakchi mis ishlab chiqaruvchilaridan biriga aylantirishi mumkin.",
-            status: "Qurilmoqda",
+            fact: "Yangi 'Mega' loyiha, zaxiralari ulkan bo'lib, O'zbekistonni dunyoning yetakchi mis ishlab chiqaruvchilaridan biriga aylantirishi mumkin.",
+            status: "Faol",
             depth: "400 metr",
-            website: "https://www.agmk.uz"
+            website: "https://www.agmk.uz",
+            audioFile: "12.mp3"
         },
         {
             id: 13,
@@ -673,7 +816,8 @@
             fact: "Muruntovdan keyingi ikkinchi yirik oltin koni, navbatdagi rivojlanish bosqichida.",
             status: "Faol",
             depth: "300 metr",
-            website: "https://www.ngmk.uz"
+            website: "https://www.ngmk.uz",
+            audioFile: "13.mp3"
         },
         {
             id: 14,
@@ -686,16 +830,151 @@
             annualProduction: "8 mlrd m³",
             established: 1998,
             employees: 2800,
-            company: "O‘zbekneftegaz",
+            company: "O'zbekneftegaz",
             fact: "Surxondaryo viloyatidagi eng yirik gaz koni, janubiy mintaqaning energiya manbai.",
             status: "Faol",
             depth: "2,600 metr",
-            website: "https://www.ung.uz"
+            website: "https://www.ung.uz",
+            audioFile: "14.mp3"
         }
     ];
 
     let activeMarkers = [];
     let currentFilter = 'all';
+
+    // Audio player funksiyalari
+    function playAudio(id) {
+        const res = resources.find(r => r.id === id);
+        if (!res) return;
+        
+        // Audio fayl mavjudligini tekshirish
+        const audioSrc = res.audioFile || `${id}.mp3`;
+        
+        // Agar bir xil audio ijro etilayotgan bo'lsa, pauza qilish yoki davom ettirish
+        if (currentAudioId === id && !audioPlayer.paused) {
+            pauseAudio();
+            return;
+        }
+        
+        // Audio player konfiguratsiyasi
+        audioPlayer.src = audioSrc;
+        audioPlayer.currentTime = 0;
+        currentAudioId = id;
+        
+        // Audio boshlanishi
+        audioPlayer.play()
+            .then(() => {
+                updateAudioUI(true);
+                startAudioProgressUpdate();
+                
+                // Audio tugaganda
+                audioPlayer.onended = function() {
+                    updateAudioUI(false);
+                    stopAudioProgressUpdate();
+                    currentAudioId = null;
+                };
+                
+                // Audio xatoligi
+                audioPlayer.onerror = function() {
+                    console.error(`Audio faylni yuklashda xatolik: ${audioSrc}`);
+                    updateAudioUI(false);
+                    stopAudioProgressUpdate();
+                    currentAudioId = null;
+                    
+                    // Xato xabari
+                    document.querySelector('.audio-status').textContent = "Audio faylni yuklashda xatolik. Fayl mavjudligini tekshiring.";
+                };
+            })
+            .catch(error => {
+                console.error("Audio ijro etishda xatolik:", error);
+                document.querySelector('.audio-status').textContent = "Audio ijro etishda xatolik. Ovoz yoqilganligini tekshiring.";
+            });
+    }
+
+    function pauseAudio() {
+        if (!audioPlayer.paused) {
+            audioPlayer.pause();
+            updateAudioUI(false);
+        }
+    }
+
+    function stopAudio() {
+        audioPlayer.pause();
+        audioPlayer.currentTime = 0;
+        updateAudioUI(false);
+        stopAudioProgressUpdate();
+        currentAudioId = null;
+    }
+
+    function updateAudioUI(isPlaying) {
+        const audioBtn = document.querySelector('.audio-btn');
+        const audioStatus = document.querySelector('.audio-status');
+        const progressContainer = document.querySelector('.audio-progress');
+        const timeContainer = document.querySelector('.audio-time');
+        const volumeContainer = document.querySelector('.audio-volume');
+        
+        if (audioBtn) {
+            if (isPlaying) {
+                audioBtn.innerHTML = '<i class="fas fa-pause"></i> Audio to\'xtatish';
+                audioBtn.classList.add('playing');
+                progressContainer.style.display = 'block';
+                timeContainer.style.display = 'flex';
+                volumeContainer.style.display = 'flex';
+                audioStatus.textContent = "Audio ijro etilmoqda...";
+            } else {
+                audioBtn.innerHTML = '<i class="fas fa-volume-up"></i> Audio tinglash';
+                audioBtn.classList.remove('playing');
+                audioStatus.textContent = "Audio to'xtatildi";
+            }
+        }
+    }
+
+    function startAudioProgressUpdate() {
+        stopAudioProgressUpdate();
+        
+        audioInterval = setInterval(function() {
+            const progressBar = document.querySelector('.audio-progress-bar');
+            const currentTimeEl = document.querySelector('.audio-current-time');
+            const durationEl = document.querySelector('.audio-duration');
+            
+            if (progressBar && !isNaN(audioPlayer.duration)) {
+                const progressPercent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                progressBar.style.width = `${progressPercent}%`;
+                
+                if (currentTimeEl) {
+                    currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+                }
+                
+                if (durationEl) {
+                    durationEl.textContent = formatTime(audioPlayer.duration);
+                }
+            }
+        }, 100);
+    }
+
+    function stopAudioProgressUpdate() {
+        if (audioInterval) {
+            clearInterval(audioInterval);
+            audioInterval = null;
+        }
+    }
+
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    // Volume control
+    function setupVolumeControl() {
+        const volumeSlider = document.querySelector('.audio-volume input');
+        if (volumeSlider) {
+            volumeSlider.value = audioPlayer.volume * 100;
+            volumeSlider.addEventListener('input', function() {
+                audioPlayer.volume = this.value / 100;
+            });
+        }
+    }
 
     // Marker yaratish funksiyasi
     function createMarker(res) {
@@ -733,7 +1012,10 @@
                 <p style="margin: 5px 0;"><strong>Viloyat:</strong> ${res.region}</p>
                 <p style="margin: 5px 0;"><strong>Turi:</strong> ${getResourceTypeName(res.type)}</p>
                 <p style="margin: 5px 0;"><strong>Holati:</strong> ${res.status}</p>
-                <button onclick="showDetails(${res.id})" style="margin-top:10px; padding:8px 15px; background:${colors[res.type]}; color:${res.type==='gold'?'#333':'white'}; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">Batafsil ma'lumot</button>
+                <button onclick="showDetails(${res.id})" style="margin-top:10px; padding:8px 15px; background:${colors[res.type]}; color:${res.type==='gold'?'#333':'white'}; border:none; border-radius:5px; cursor:pointer; font-weight:bold; width: 100%;">Batafsil ma'lumot</button>
+                <button onclick="playAudio(${res.id})" class="popup-audio-btn" style="width: 100%;">
+                    <i class="fas fa-volume-up"></i> Audio tinglash
+                </button>
             </div>
         `);
         
@@ -747,11 +1029,11 @@
 
     // Filter funksiyasi - ENDI XARITANI HARAKATLANTIRMAYDI
     function filterMarkers(type) {
-        // Faqat filter tugmalarining faolligini o‘zgartirish
+        // Faqat filter tugmalarining faolligini o'zgartirish
         document.querySelectorAll('.filter-group .btn').forEach(b => b.classList.remove('active'));
         event.target.classList.add('active');
         
-        // Eski markerlarni o‘chirish
+        // Eski markerlarni o'chirish
         activeMarkers.forEach(m => map.removeLayer(m));
         activeMarkers = [];
         
@@ -761,11 +1043,11 @@
         const filtered = type === 'all' ? resources : resources.filter(r => r.type === type);
         filtered.forEach(r => activeMarkers.push(createMarker(r)));
         
-        // Xaritani harakatlantirmaymiz, faqat filter qo‘llaymiz
-        console.log(`${filtered.length} ta kon ko‘rsatilmoqda (${type} filteri)`);
+        // Xaritani harakatlantirmaymiz, faqat filter qo'llaymiz
+        console.log(`${filtered.length} ta kon ko'rsatilmoqda (${type} filteri)`);
     }
 
-    // Tafsilotlarni ko‘rsatish
+    // Tafsilotlarni ko'rsatish
     function showDetails(id) {
         const res = resources.find(r => r.id === id);
         if (!res) return;
@@ -797,6 +1079,13 @@
             copper: '#e67e22'
         };
 
+        // Audio tinglash uchun tugma holatini aniqlash
+        const isCurrentAudioPlaying = currentAudioId === id && !audioPlayer.paused;
+        const audioBtnText = isCurrentAudioPlaying ? 
+            '<i class="fas fa-pause"></i> Audio to\'xtatish' : 
+            '<i class="fas fa-volume-up"></i> Audio tinglash';
+        const audioBtnClass = isCurrentAudioPlaying ? 'audio-btn playing' : 'audio-btn';
+
         detailDiv.innerHTML = `
             <div class="info-card" style="border-left-color: ${colors[res.type]};">
                 <h3><i class="fas fa-${getResourceIcon(res.type)}" style="color: ${colors[res.type]}"></i> ${res.name}</h3>
@@ -807,6 +1096,31 @@
                 <p><strong>Holati:</strong> ${res.status}</p>
                 <p><strong>Chuqurligi:</strong> ${res.depth}</p>
                 <p><strong>Xodimlar soni:</strong> ${res.employees.toLocaleString()} kishi</p>
+                
+                <div class="audio-controls">
+                    <h4 style="margin-top: 0; color: ${colors[res.type]}"><i class="fas fa-volume-up"></i> Audio ma'lumot:</h4>
+                    <button class="${audioBtnClass}" onclick="playAudio(${res.id})">
+                        ${audioBtnText}
+                    </button>
+                    
+                    <div class="audio-progress">
+                        <div class="audio-progress-bar"></div>
+                    </div>
+                    <div class="audio-time">
+                        <span class="audio-current-time">0:00</span>
+                        <span class="audio-duration">0:00</span>
+                    </div>
+                    
+                    <div class="audio-volume">
+                        <i class="fas fa-volume-down"></i>
+                        <input type="range" min="0" max="100" value="70">
+                        <i class="fas fa-volume-up"></i>
+                    </div>
+                    
+                    <div class="audio-status">
+                        ${isCurrentAudioPlaying ? 'Audio ijro etilmoqda...' : 'Audio tinglash uchun tugmani bosing'}
+                    </div>
+                </div>
                 
                 <div class="resource-details">
                     <div class="detail-item">
@@ -832,7 +1146,15 @@
             </div>
         `;
         
-        // Mobil qurilmalarda sidebar ko‘rsatish
+        // Audio progress va volume control sozlash
+        setupVolumeControl();
+        
+        // Agar audio ijro etilayotgan bo'lsa, progressni yangilash
+        if (isCurrentAudioPlaying) {
+            startAudioProgressUpdate();
+        }
+        
+        // Mobil qurilmalarda sidebar ko'rsatish
         if (window.innerWidth <= 900) {
             document.getElementById('sidebar').classList.remove('hidden');
         }
@@ -840,6 +1162,9 @@
 
     // Boshqaruv paneliga qaytish
     function resetToOverview() {
+        // Audio to'xtatish
+        stopAudio();
+        
         document.getElementById('resource-details').style.display = 'none';
         document.getElementById('dynamic-info').style.display = 'block';
         
@@ -849,7 +1174,7 @@
         }
     }
 
-    // Xarita turini o‘zgartirish
+    // Xarita turini o'zgartirish
     function changeMapType(type) {
         map.removeLayer(osmLayer);
         map.removeLayer(satelliteLayer);
@@ -866,7 +1191,7 @@
         event.target.classList.add('active');
     }
 
-    // Sidebar ni mobil qurilmalarda ko‘rsatish/yashirish
+    // Sidebar ni mobil qurilmalarda ko'rsatish/yashirish
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         sidebar.classList.toggle('hidden');
@@ -879,7 +1204,7 @@
             oil: "Neft",
             gas: "Tabiiy gaz",
             uranium: "Uran",
-            coal: "Ko‘mir",
+            coal: "Ko'mir",
             copper: "Mis"
         };
         return names[type] || type;
@@ -903,28 +1228,47 @@
         // Barcha markerlarni yaratish
         filterMarkers('all');
         
-        // Xarita o‘lchamini sozlash
+        // Xarita o'lchamini sozlash
         setTimeout(() => {
             map.invalidateSize();
         }, 100);
         
-        // Ekran o‘lchami o‘zgarganda sidebar holatini sozlash
+        // Ekran o'lchami o'zgarganda sidebar holatini sozlash
         window.addEventListener('resize', function() {
             if (window.innerWidth > 900) {
-                // Desktop rejimida sidebar har doim ko‘rinsin
+                // Desktop rejimida sidebar har doim ko'rinsin
                 document.getElementById('sidebar').classList.remove('hidden');
             } else {
-                // Mobil rejimda sidebar boshlang‘ich holatda yopiq bo‘lsin
+                // Mobil rejimda sidebar boshlang'ich holatda yopiq bo'lsin
                 document.getElementById('sidebar').classList.add('hidden');
             }
             map.invalidateSize();
+        });
+        
+        // Audio player event listener
+        audioPlayer.addEventListener('play', function() {
+            updateAudioUI(true);
+        });
+        
+        audioPlayer.addEventListener('pause', function() {
+            updateAudioUI(false);
+        });
+        
+        audioPlayer.addEventListener('ended', function() {
+            updateAudioUI(false);
+            stopAudioProgressUpdate();
+            currentAudioId = null;
+            const audioStatus = document.querySelector('.audio-status');
+            if (audioStatus) {
+                audioStatus.textContent = "Audio tugadi";
+            }
         });
     });
 </script>
 <footer class="site-footer">
     <p>
         Muallif: <strong>Tashpulatov Azimjon</strong> |
-        Nizomiy nomidagi O‘zbekiston milliy pedagogika universiteti |
+        Nizomiy nomidagi O'zbekiston milliy pedagogika universiteti |
         Tabiiy fanlar fakulteti, 101-guruh (kechki), 1-kurs
     </p>
 </footer>
